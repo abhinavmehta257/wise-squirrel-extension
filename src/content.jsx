@@ -1,33 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { render } from 'react-dom';
+import {initMediumBookmarkIcon } from './utils/mediumSelector';
+import saveBookmark from './utils/saveBookmark';
 
 document.getElementsByTagName('body')[0].appendChild(document.createElement('div')).classList.add('content-component')
 const Content = () => {
-  const body = document.getElementsByTagName('body')[0];
-  body.style.marginTop= '32px';
-
-  const saveButtonStyle = {
-    position: 'fixed',
-    top: '0px',
-    right: '0px',
-    padding: '8px 16px',
-    backgroundColor: '#243546', // dark-surface
-    color: '#DEE7EA', // light-text
-    cursor: 'pointer',
-    zIndex: '1000',
-    fontSize: '16px',
-    width: '100%',
-    textAlign: 'center',
-    border: 'none',      // Remove any default border
-    outline: 'none',     // Remove default focus outline
-    boxShadow: 'none',   // Remove default shadow
-    appearance: 'none',
-    cursor: isSaved ? 'none' : 'pointer' 
-  };
-
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAlreadySaved, setIsAlreadySaved] = useState(false);
+  const saveButtonStyle = {
+    position: 'fixed',
+    bottom: '20px',
+    right: '20px',
+    padding: '12px 20px',
+    backgroundColor: '#243546', // dark-surface
+    color: '#DEE7EA', // light-text
+    cursor: isSaved ? 'default' : 'pointer',
+    zIndex: '1000',
+    fontSize: '16px',
+    borderRadius: '30px',
+    border: 'none',
+    outline: 'none',
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    transition: 'all 0.3s ease',
+  };
+
   const getFirstHeadingText = () => {
     for (let i = 1; i <= 6; i++) {
       const heading = document.querySelector(`h${i}`);
@@ -38,7 +36,7 @@ const Content = () => {
     return document.title; // Fallback to document.title if no heading found
   };
 
-  const handleClick = () => {
+  const handleClick = async () => {
     if (!isSaved && !isSaving) {
       // Collect required data from the page
       const pageTitle = getFirstHeadingText();
@@ -57,27 +55,19 @@ const Content = () => {
         service_id: null,  // This will be set on the server-side
         service_name: new URL(window.location.href).hostname.split('.').slice(-2, -1)[0]
       };
-
-      setIsSaving(true);
-
-      chrome.runtime.sendMessage({ action: 'saveUrl', url: window.location.href, ...saveData }, (response) => {
-        if (response && response.success) {
-          setIsSaved(true);
-        } else {
-          // Handle error case
-          console.error('Failed to save URL');
-        }
-        setIsSaving(false);
-      });
+      console.log(saveData);
+      await saveBookmark(saveData,setIsSaving,setIsSaved);
     }
   };
 
+  useEffect(() => {
+    if(isLoggedIn){
+      initMediumBookmarkIcon();
+    }
+  }, [isLoggedIn]);
 
   useEffect(() => {
-    // Function to get the first heading text
-    
 
-    // Set up listener for requests from background script
     const messageListener = (request, sender, sendResponse) => {
       if (request.action === "getPageInfo") {
         const pageInfo = {
@@ -96,10 +86,37 @@ const Content = () => {
     };
   }, []);
 
+
+  useEffect(() => {
+    // Check if the user is logged in
+    chrome.storage.local.get(['authToken'], function(result) {
+      if (result.authToken) {
+        setIsLoggedIn(true);
+      } else {
+        setIsLoggedIn(false);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    console.log("Fetching URL:", window.location.href);
+    chrome.runtime.sendMessage({action: "fetchUrl", url: window.location.href}, (response) => {
+      if(response.success){
+        console.log("URL fetched successfully:", response.data);
+        setIsAlreadySaved(true);
+      }else{
+        console.log("Error fetching URL:", response.error);
+        setIsAlreadySaved(false);
+      }
+    });
+  }, []);
+
   return <>
-    <button disabled={isSaved} onClick={handleClick} style={saveButtonStyle}>
-        {!isSaved ? (!isSaving ? "Save this url with Wise Squirrel 😁" : "Please waite while we save it for you... 😊") : "Saved successfully (you can find it in your app) 🎉🎉"}
-    </button>  
+    {isLoggedIn ? <button disabled={isSaved || isAlreadySaved} onClick={handleClick} style={saveButtonStyle}>
+        {!isSaved? (!isSaving ? "Save 🐿️" : "Saving... 😊") : "Saved! 🎉"}
+        {isAlreadySaved ? "Already saved! 🎉" : "test"}
+    </button> : null }
+    
   </>;
 };
 

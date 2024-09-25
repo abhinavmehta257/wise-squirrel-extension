@@ -16,7 +16,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 					author: request.author || 'Unknown',
 					body: request.body || '',
 					thumbnail: request.thumbnail || '',  // Will be set by content script
-					link: request.url,
+					link: request.link,
 					service_id: null,  // This should be set from the server-side
 					service_name: request.service_name
 				};
@@ -47,5 +47,28 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		
 		// Return true to indicate that we will send a response asynchronously
 		return true;
+	}
+	if(request.action === 'fetchUrl'){
+		console.log('Fetching URL:', request.url);
+		chrome.storage.local.get(['authToken'], function(result) {
+			const authToken = result.authToken;
+			console.log('Auth token:', authToken);
+			fetch('http://localhost:3000/api/bookmarks/fetch?url=' + request.url, {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${authToken}`
+			},
+		})
+		.then(response => response.json())
+		.then(data => {
+			console.log('URL fetched successfully:', data);
+			sendResponse({ success: true, data: data });
+		})
+		.catch(error => {
+			console.error('Error fetching URL:', error);
+			sendResponse({ success: false, error: error.message });
+			});
+		});
 	}
 });
