@@ -5,14 +5,14 @@ import { Toaster, toast } from 'react-hot-toast';
 function Login({setToken}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     try {
       console.log(email, password);
-  
-      const response = await fetch(`http://localhost:3000/api/auth/signin`, {
+      setIsSubmitting(true);
+      const response = await fetch(`https://fantastic-train-r6qjxrpp5rwf5r4v-3000.app.github.dev/api/auth/signin`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -45,6 +45,7 @@ function Login({setToken}) {
       // Optionally, you can also set it as a cookie
       Cookies.set('authToken', authToken, { expires: 7 }); // Expires in 7 days
       setToken(authToken);
+      setIsSubmitting(false);
       // Show success toast
       toast.success('Signin successful!',{
         position: "bottom-center"
@@ -52,6 +53,10 @@ function Login({setToken}) {
       // router.push("/dashboard")
     } catch (err) {
       console.error('Error:', err);
+      setIsSubmitting(false);
+      toast.error('Signin failed!',{
+        position: "bottom-center"
+      });
     }
   };
 
@@ -86,8 +91,9 @@ function Login({setToken}) {
           </div>
           <button 
             type="submit" 
+            disabled={isSubmitting}
             className="w-full bg-dark-surface text-light-surface p-3 rounded-md font-semibold hover:bg-opacity-90">
-            Login
+            {isSubmitting ? 'Submitting...' : 'Login'}
           </button>
         </form>
       </div>

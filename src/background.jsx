@@ -21,7 +21,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 					service_name: request.service_name
 				};
 
-				fetch('http://localhost:3000/api/bookmarks/save', {
+				fetch('https://fantastic-train-r6qjxrpp5rwf5r4v-3000.app.github.dev/api/bookmarks/save', {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
@@ -48,12 +48,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		// Return true to indicate that we will send a response asynchronously
 		return true;
 	}
-	if(request.action === 'fetchUrl'){
+	if(request.action === "fetchUrl"){
 		console.log('Fetching URL:', request.url);
 		chrome.storage.local.get(['authToken'], function(result) {
 			const authToken = result.authToken;
 			console.log('Auth token:', authToken);
-			fetch('http://localhost:3000/api/bookmarks/fetch?url=' + request.url, {
+			fetch('https://fantastic-train-r6qjxrpp5rwf5r4v-3000.app.github.dev/api/bookmarks/fetch?url=' + request.url, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
@@ -62,13 +62,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		})
 		.then(response => response.json())
 		.then(data => {
-			console.log('URL fetched successfully:', data);
-			sendResponse({ success: true, data: data });
+			console.log('background URL fetched successfully:', data);
+			if(data.status == false){
+				sendResponse({ success: false, error: data.error });
+
+			}else{
+				sendResponse({ success: true, data: data });
+
+			}
 		})
 		.catch(error => {
 			console.error('Error fetching URL:', error);
 			sendResponse({ success: false, error: error.message });
 			});
 		});
+
+		return true;
 	}
 });

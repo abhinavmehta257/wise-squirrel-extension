@@ -76,10 +76,7 @@ export function addMediumBookmarkIcon() {
 
 // Implement this function to save the bookmark
 function saveBookmark(bookmark) {
-  // Here you would implement the logic to save the bookmark
-  // This could involve sending it to a server, storing it in local storage, etc.
   console.log('Saving bookmark:', bookmark);
-  // For now, we'll just log it to the console
 }
 
 // Export a function that sets up the event listener

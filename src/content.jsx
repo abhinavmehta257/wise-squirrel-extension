@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { render } from 'react-dom';
-import {initMediumBookmarkIcon } from './utils/mediumSelector';
-import saveBookmark from './utils/saveBookmark';
+import {saveBookmark, getBookmark} from './utils/bookmark.js';
+import SiteSaveIcons from './components/ui/SiteSaveIcons.jsx';
 
 document.getElementsByTagName('body')[0].appendChild(document.createElement('div')).classList.add('content-component')
 const Content = () => {
@@ -16,7 +16,7 @@ const Content = () => {
     padding: '12px 20px',
     backgroundColor: '#243546', // dark-surface
     color: '#DEE7EA', // light-text
-    cursor: isSaved ? 'default' : 'pointer',
+    cursor: isSaved||isAlreadySaved ? 'not-allowed' : 'pointer',
     zIndex: '1000',
     fontSize: '16px',
     borderRadius: '30px',
@@ -24,6 +24,8 @@ const Content = () => {
     outline: 'none',
     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
     transition: 'all 0.3s ease',
+    zIndex: '1000',
+
   };
 
   const getFirstHeadingText = () => {
@@ -61,12 +63,6 @@ const Content = () => {
   };
 
   useEffect(() => {
-    if(isLoggedIn){
-      initMediumBookmarkIcon();
-    }
-  }, [isLoggedIn]);
-
-  useEffect(() => {
 
     const messageListener = (request, sender, sendResponse) => {
       if (request.action === "getPageInfo") {
@@ -99,23 +95,23 @@ const Content = () => {
   }, []);
 
   useEffect(() => {
-    console.log("Fetching URL:", window.location.href);
-    chrome.runtime.sendMessage({action: "fetchUrl", url: window.location.href}, (response) => {
-      if(response.success){
-        console.log("URL fetched successfully:", response.data);
-        setIsAlreadySaved(true);
-      }else{
-        console.log("Error fetching URL:", response.error);
-        setIsAlreadySaved(false);
-      }
-    });
+    getBookmark(setIsAlreadySaved);
   }, []);
 
+
+
   return <>
-    {isLoggedIn ? <button disabled={isSaved || isAlreadySaved} onClick={handleClick} style={saveButtonStyle}>
-        {!isSaved? (!isSaving ? "Save 🐿️" : "Saving... 😊") : "Saved! 🎉"}
-        {isAlreadySaved ? "Already saved! 🎉" : "test"}
-    </button> : null }
+    {isLoggedIn ? 
+      <>
+        <button disabled={isSaved || isAlreadySaved} onClick={handleClick} style={saveButtonStyle}>
+            {isAlreadySaved ? "Already saved! 🎉" : 
+            (isSaved ? "Saved! 🎉" : 
+              (isSaving ? "Saving... 😊" : "Save 🐿️"))}
+        </button>
+
+        <SiteSaveIcons/> 
+      </>
+    : null }
     
   </>;
 };

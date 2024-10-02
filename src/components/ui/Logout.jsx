@@ -28,6 +28,11 @@ export default function Logout({setToken}) {
   };
 
   return (
-    <button onClick={handleLogout}>Logout</button>
+    <button 
+      className='fixed top-4 right-4 bg-red-500 text-light-surface py-2 px-4 rounded-md hover:bg-opacity-90' 
+      onClick={handleLogout}
+    >
+      Logout
+    </button>
   );
 }
