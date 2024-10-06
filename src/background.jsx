@@ -1,5 +1,5 @@
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	const URL = 'https://fantastic-train-r6qjxrpp5rwf5r4v-3000.app.github.dev/api'
+	const URL = 'https://mycache.netlify.app/api'
 
 	switch (request.action) {
 		case 'saveUrl':
@@ -122,6 +122,34 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 			return true;
 			break;
+
+		case 'deleteBookmark':
+			chrome.storage.local.get(['authToken'], function(result) {
+				const authToken = result.authToken;
+				console.log('Auth token:', authToken);
+				fetch(`${URL}/bookmarks/delete?bookmark_id=${request.deletedBookmarkId}`, {
+				method: 'DELETE',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${authToken}`
+				},
+			})
+			.then(response => response.json())
+			.then(data => {
+				if(data.status == false){
+					sendResponse({ success: false, error: data.error });
+
+				}else{
+					sendResponse({ success: true, data: data });
+
+				}
+			})
+			.catch(error => {
+				console.error('Error fetching URL:', error);
+				sendResponse({ success: false, error: error.message });
+				});
+			});
+			return true;
 	}
 });
 

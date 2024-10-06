@@ -31,33 +31,31 @@ function Dashboard() {
   const handleDeleteBookmark = async (deletedBookmarkId) => {
     try {
       setIsLoader(true);
-      const response = await fetch(`${url}/api/bookmarks/delete?bookmark_id=${deletedBookmarkId}`, {
-        method: "DELETE",
-        headers: {
-          'Content-Type': 'application/json'
+      chrome.runtime.sendMessage({ action: 'deleteBookmark',deletedBookmarkId }, (response) => {
+        console.log("fetched")
+        if (response.success) {
+          const updatedBookmarks = bookmarks
+            .map(service => {
+              const filteredBookmarks = service.bookmarks.filter(bookmark => bookmark._id !== deletedBookmarkId);
+              if (filteredBookmarks.length === 0) return null; // Return null for services with no bookmarks
+              return {
+                ...service,
+                bookmarks: filteredBookmarks,
+                count: filteredBookmarks.length,  // Update the count after deletion
+              };
+            })
+            .filter(service => service !== null); // Filter out the null values
+          
+          setBookmarks(updatedBookmarks);
+          setIsLoader(false);
+          console.log('Bookmark deleted successfully:', data);
+        } else {
+          console.error('Failed to fetch services:', response.error);
+          throw new Error(`Failed to delete bookmark: ${response.statusText}`);
         }
       });
-  
-      if (!response.ok) {
-        throw new Error(`Failed to delete bookmark: ${response.statusText}`);
-      }
-  
-      const data = await response.json();
-      const updatedBookmarks = bookmarks
-        .map(service => {
-          const filteredBookmarks = service.bookmarks.filter(bookmark => bookmark._id !== deletedBookmarkId);
-          if (filteredBookmarks.length === 0) return null; // Return null for services with no bookmarks
-          return {
-            ...service,
-            bookmarks: filteredBookmarks,
-            count: filteredBookmarks.length,  // Update the count after deletion
-          };
-        })
-        .filter(service => service !== null); // Filter out the null values
+
       
-      setBookmarks(updatedBookmarks);
-      setIsLoader(false);
-      console.log('Bookmark deleted successfully:', data);
     } catch (error) {
       console.error('Error deleting bookmark:', error);
     }

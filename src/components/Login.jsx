@@ -1,10 +1,10 @@
 import React, { useContext, useState } from 'react';
 import Cookies from 'js-cookie';
 import { Toaster, toast } from 'react-hot-toast';
-import { loginContext, routeContext } from '../context/context.jsx';
+import { loginContext, routeContext, urlContext } from '../context/context.jsx';
 
 function Login() {
-  const url = 'https://fantastic-train-r6qjxrpp5rwf5r4v-3000.app.github.dev/api';
+  const {url} = useContext(urlContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -75,6 +75,7 @@ function Login() {
               className="w-full p-3 bg-dark-surface text-light-text rounded-md focus:outline-none focus:ring-2 focus:ring-primary-text"
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
+              placeholder="corybarker@email.com"
               required
             />
           </div>
@@ -88,6 +89,7 @@ function Login() {
               value={password} 
               onChange={(e) => setPassword(e.target.value)} 
               required
+              placeholder="••••••••"
             />
           </div>
           <button 

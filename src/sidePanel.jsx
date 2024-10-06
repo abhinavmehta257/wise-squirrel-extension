@@ -18,7 +18,7 @@ const Popup = () => {
     }
     console.log(token);
   })
-  const url = 'https://fantastic-train-r6qjxrpp5rwf5r4v-3000.app.github.dev/api/'
+  const url = 'https://mycache.netlify.app/api'
 
   const renderElement = ()=>{
     switch(route){
