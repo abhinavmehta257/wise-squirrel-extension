@@ -1,18 +1,21 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import Cookies from 'js-cookie';
 import { Toaster, toast } from 'react-hot-toast';
+import { loginContext, routeContext } from '../context/context.jsx';
 
-function Login({setToken}) {
+function Login() {
+  const url = 'https://fantastic-train-r6qjxrpp5rwf5r4v-3000.app.github.dev/api';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const {setToken} = useContext(loginContext);
+  const {route, setRoute} = useContext(routeContext);
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     try {
       console.log(email, password);
       setIsSubmitting(true);
-      const response = await fetch(`https://fantastic-train-r6qjxrpp5rwf5r4v-3000.app.github.dev/api/auth/signin`, {
+      const response = await fetch(`${url}/auth/signin`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -54,16 +57,14 @@ function Login({setToken}) {
     } catch (err) {
       console.error('Error:', err);
       setIsSubmitting(false);
-      toast.error('Signin failed!',{
-        position: "bottom-center"
-      });
     }
   };
 
   return (
-    <div className="h-[500px] w-[500px] flex items-center justify-center bg-dark-background">
-      <div className="p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-3xl font-bold text-light-text mb-6 text-center">Login</h2>
+    <>
+    <div className="w-full h-full flex flex-col items-center justify-center bg-dark-background">
+      <div className="p-8 rounded-lg w-full max-w-md">
+        <h2 className="text-3xl font-bold text-light-text mb-6 text-center">Signin</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label htmlFor="email" className="block text-light-text mb-2">Email</label>
@@ -93,12 +94,24 @@ function Login({setToken}) {
             type="submit" 
             disabled={isSubmitting}
             className="w-full bg-dark-surface text-light-surface p-3 rounded-md font-semibold hover:bg-opacity-90">
-            {isSubmitting ? 'Submitting...' : 'Login'}
+            {isSubmitting ? 'Submitting...' : 'Submit'}
           </button>
         </form>
       </div>
+      <div className="text-center">
+        <p className="text-sm text-gray-500">
+          <button
+            className="whitespace-nowrap font-medium text-gray-700 underline hover:no-underline"
+            href="#0"
+            onClick={()=> setRoute('signup')}
+          >
+            SignUp
+          </button>
+        </p>
+      </div>
       <Toaster/>
     </div>
+  </>
   );
 }
 

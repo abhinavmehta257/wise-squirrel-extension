@@ -4,7 +4,7 @@ const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
   entry: {
-        popup:'./src/popup.jsx',
+        popup:'./src/sidePanel.jsx',
         content:'./src/content.jsx',
         background:'./src/background.jsx',
     },
@@ -26,8 +26,8 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './src/popup.html',
-      filename: 'popup.html'
+      template: './src/sidePanel.html',
+      filename: 'sidePanel.html'
     }),
     new CopyPlugin({
       patterns: [

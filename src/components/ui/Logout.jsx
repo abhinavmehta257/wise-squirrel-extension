@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import Cookies from 'js-cookie';
 import { toast } from 'react-hot-toast';
 import React from 'react';
+import { loginContext } from '../../context/context.jsx';
 
-
-export default function Logout({setToken}) {
+export default function Logout() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-
+  const {setToken} = useContext(loginContext);
   useEffect(() => {
     const authToken = Cookies.get('authToken');
     setIsLoggedIn(!!authToken);
@@ -29,7 +29,7 @@ export default function Logout({setToken}) {
 
   return (
     <button 
-      className='fixed top-4 right-4 bg-red-500 text-light-surface py-2 px-4 rounded-md hover:bg-opacity-90' 
+      className='' 
       onClick={handleLogout}
     >
       Logout

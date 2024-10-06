@@ -2,6 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { render } from 'react-dom';
 import {saveBookmark, getBookmark} from './utils/bookmark.js';
 import SiteSaveIcons from './components/ui/SiteSaveIcons.jsx';
+import {getFirstHeadingText} from './utils/getBookmarkData.js';
+import { ViewSidebar } from '@mui/icons-material';
+
+function openSidepanel(){
+  chrome.runtime.sendMessage({action:"openSidePanel"})
+}
 
 document.getElementsByTagName('body')[0].appendChild(document.createElement('div')).classList.add('content-component')
 const Content = () => {
@@ -9,34 +15,6 @@ const Content = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAlreadySaved, setIsAlreadySaved] = useState(false);
-  const saveButtonStyle = {
-    position: 'fixed',
-    bottom: '20px',
-    right: '20px',
-    padding: '12px 20px',
-    backgroundColor: '#243546', // dark-surface
-    color: '#DEE7EA', // light-text
-    cursor: isSaved||isAlreadySaved ? 'not-allowed' : 'pointer',
-    zIndex: '1000',
-    fontSize: '16px',
-    borderRadius: '30px',
-    border: 'none',
-    outline: 'none',
-    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    transition: 'all 0.3s ease',
-    zIndex: '1000',
-
-  };
-
-  const getFirstHeadingText = () => {
-    for (let i = 1; i <= 6; i++) {
-      const heading = document.querySelector(`h${i}`);
-      if (heading) {
-        return heading.textContent.trim();
-      }
-    }
-    return document.title; // Fallback to document.title if no heading found
-  };
 
   const handleClick = async () => {
     if (!isSaved && !isSaving) {
@@ -103,12 +81,19 @@ const Content = () => {
   return <>
     {isLoggedIn ? 
       <>
-        <button disabled={isSaved || isAlreadySaved} onClick={handleClick} style={saveButtonStyle}>
-            {isAlreadySaved ? "Already saved! 🎉" : 
-            (isSaved ? "Saved! 🎉" : 
-              (isSaving ? "Saving... 😊" : "Save 🐿️"))}
-        </button>
-
+        <div className='fixed top-1/2 right-4 bg-dark-surface hover:bg-dark-surface twhite font-bold rounded-[20px] shadow-lg transition-all duration-300 ease-in-out focus:outline px-2 py-4 text-white flex flex-col gap-2'>
+          <button 
+            disabled={isSaved || isAlreadySaved} 
+            onClick={handleClick} 
+          >
+              {isAlreadySaved ? "🎉" : 
+              (isSaved ? "🎉" : 
+                (isSaving ? "" : "🐿️"))}
+          </button>
+          <button onClick={openSidepanel}>
+            <ViewSidebar className='text-light-surface'/>
+          </button>
+        </div >
         <SiteSaveIcons/> 
       </>
     : null }

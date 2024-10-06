@@ -4,7 +4,6 @@
     "version": "1.0",
     "description": "A simple Chrome extension that displays 'Hello, World!'",
     "action": {
-      "default_popup": "popup.html",
       "default_icon": {
         "16": "icons/logo16.png",
         "48": "icons/logo48.png",
@@ -17,13 +16,22 @@
     "content_scripts": [
     {
       "matches": ["https://*/*"], 
-      "js": ["content.js"]
+      "js": ["content.js"],
+      "css": ["index.css"]
     }
   ],
+  "side_panel": {
+      "default_path": "sidePanel.html",
+      "default_icon": {
+        "16": "icons/logo16.png",
+        "48": "icons/logo48.png",
+        "128": "icons/logo128.png"
+      }
+    },
     "permissions": [
       "storage",
       "activeTab",
-      "tabs"
+      "tabs",
+      "sidePanel"
     ]
   }
-  
