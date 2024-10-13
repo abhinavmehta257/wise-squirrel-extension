@@ -25,19 +25,26 @@ const buttonStyles = {
   margin:0
 };
 
+function saveUpdatedConfig(data){
+  chrome.storage.local.set({ extConfig: JSON.stringify(data) }, function() {
+    console.log('extention config saved');
+  });
+}
+
+
 document.getElementsByTagName('body')[0].appendChild(document.createElement('div')).classList.add('content-component')
 const Content = () => {
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAlreadySaved, setIsAlreadySaved] = useState(false);
-  const [position, setPosition] = useState({ top: '50%' });
+  const [buttonPosition, setFloatingButtonPosition] = useState({ top: '50%' });
   const divRef = useRef(null);
   const dragStart = useRef(null);
 
   const style = {
     position: 'fixed',
-    top: position.top, // or '50vh' if you want it to be vertically centered in viewport
+    top: buttonPosition.top, // or '50vh' if you want it to be vertically centered in viewport
     right: '1rem', // Assuming the default spacing unit (4) is 0.25rem
     backgroundColor: '#243546', // Use CSS variable if defined
     color: 'white', // Use '#fff' or 'rgba(255, 255, 255, 1)' if you want
@@ -58,21 +65,26 @@ const Content = () => {
       y: e.clientY,
       top: divRef.current.offsetTop
     };
-
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
+    document.getElementsByTagName("body")[0].style.userSelect = 'none';
   };
 
   const handleMouseMove = (e) => {
     const deltaY = e.clientY - dragStart.current.y;
     const newTop = dragStart.current.top + deltaY;
 
-    setPosition({ top: newTop + 'px' });
+    setFloatingButtonPosition({ top: newTop + 'px' });
+    console.log({ top: newTop + 'px' });
   };
 
-  const handleMouseUp = () => {
+  const handleMouseUp = (e) => {
     window.removeEventListener('mousemove', handleMouseMove);
     window.removeEventListener('mouseup', handleMouseUp);
+    document.getElementsByTagName("body")[0].style.userSelect = 'auto';
+    console.log('button pos',e.clientY);
+    const position = {top:e.clientY+'px'}
+    saveUpdatedConfig({floatingButtonPosition:position});
   };
 
   const handleClick = async () => {
@@ -123,6 +135,18 @@ const Content = () => {
       }
     });
   }, []);
+
+  useEffect(()=>{
+    chrome.storage.local.get(['extConfig'], function(result) {
+      const {floatingButtonPosition} = JSON.parse(result.extConfig);
+      console.log('saved pos',floatingButtonPosition);
+      
+      if (floatingButtonPosition) {
+        setFloatingButtonPosition(floatingButtonPosition);
+        console.log("current pos",floatingButtonPosition );
+      }
+    });
+  },[])
 
   useEffect(() => {
     getBookmark(setIsAlreadySaved);
