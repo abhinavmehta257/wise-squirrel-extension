@@ -1,13 +1,29 @@
-import React, { useEffect, useState } from 'react';
-import { render } from 'react-dom';
-import {saveBookmark, getBookmark} from './utils/bookmark.js';
-import SiteSaveIcons from './components/ui/SiteSaveIcons.jsx';
-import {getFirstHeadingText} from './utils/getBookmarkData.js';
 import { ViewSidebar } from '@mui/icons-material';
+import React, { useEffect, useRef, useState } from 'react';
+import { render } from 'react-dom';
+import Loader from './components/ui/Loader.jsx';
+import { getBookmark, saveBookmark } from './utils/bookmark.js';
+import { getFirstHeadingText } from './utils/getBookmarkData.js';
 
 function openSidepanel(){
   chrome.runtime.sendMessage({action:"openSidePanel"})
 }
+
+const buttonStyles = {
+  backgroundColor: 'transparent', // No background
+  width: '24px', // Fixed width (adjust as needed)
+  height: '24px', // Fixed height (adjust as needed)
+  fontFamily: 'Arial, sans-serif', // Fixed font (you can specify your desired font)
+  fontSize: '16px', // Fixed font size (adjust as needed)
+  fontWeight: 'bold', // Adjust the font weight if needed
+  color: '#fff', // Text color (you can change it to your desired color)
+  border: 'none', // No border
+  borderRadius: '5px', // Optional: Add some rounding if needed
+  cursor: 'pointer', // Change the cursor on hover
+  transition: 'all 0.3s ease-in-out', // Smooth transition for hover effects
+  padding:0,
+  margin:0
+};
 
 document.getElementsByTagName('body')[0].appendChild(document.createElement('div')).classList.add('content-component')
 const Content = () => {
@@ -15,6 +31,49 @@ const Content = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAlreadySaved, setIsAlreadySaved] = useState(false);
+  const [position, setPosition] = useState({ top: '50%' });
+  const divRef = useRef(null);
+  const dragStart = useRef(null);
+
+  const style = {
+    position: 'fixed',
+    top: position.top, // or '50vh' if you want it to be vertically centered in viewport
+    right: '1rem', // Assuming the default spacing unit (4) is 0.25rem
+    backgroundColor: '#243546', // Use CSS variable if defined
+    color: 'white', // Use '#fff' or 'rgba(255, 255, 255, 1)' if you want
+    fontWeight: 'bold',
+    borderRadius: '20px', // Tailwind uses rem or pixels for rounding
+    boxShadow: '0 10px 15px rgba(0, 0, 0, 0.1)', // Shadow from Tailwind's shadow-lg
+    transition: 'all 300ms ease-in-out',
+    padding: '1rem 0.5rem', // px-2: 0.5rem; py-4: 1rem
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.5rem', // Tailwind gap-2: 0.5rem
+    outline: 'none', // Default for focus state
+    zIndex:10000000
+  };
+
+  const handleMouseDown = (e) => {
+    dragStart.current = {
+      y: e.clientY,
+      top: divRef.current.offsetTop
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const handleMouseMove = (e) => {
+    const deltaY = e.clientY - dragStart.current.y;
+    const newTop = dragStart.current.top + deltaY;
+
+    setPosition({ top: newTop + 'px' });
+  };
+
+  const handleMouseUp = () => {
+    window.removeEventListener('mousemove', handleMouseMove);
+    window.removeEventListener('mouseup', handleMouseUp);
+  };
 
   const handleClick = async () => {
     if (!isSaved && !isSaving) {
@@ -43,21 +102,14 @@ const Content = () => {
   useEffect(() => {
 
     const messageListener = (request, sender, sendResponse) => {
-      if (request.action === "getPageInfo") {
-        const pageInfo = {
-          title: getFirstHeadingText(),
-          thumbnail: document.querySelector('meta[property="og:image"]')?.content || ''
-        };
-        sendResponse(pageInfo);
+      if (request.action === "urlChanged") {
+        getBookmark(setIsAlreadySaved);
+        // alert('The URL has changed to: ' + request.message.url);
       }
     };
 
     chrome.runtime.onMessage.addListener(messageListener);
 
-    // Clean up listener when component unmounts
-    return () => {
-      chrome.runtime.onMessage.removeListener(messageListener);
-    };
   }, []);
 
 
@@ -76,25 +128,28 @@ const Content = () => {
     getBookmark(setIsAlreadySaved);
   }, []);
 
-
-
   return <>
     {isLoggedIn ? 
       <>
-        <div className='fixed top-1/2 right-4 bg-dark-surface hover:bg-dark-surface twhite font-bold rounded-[20px] shadow-lg transition-all duration-300 ease-in-out focus:outline px-2 py-4 text-white flex flex-col gap-2'>
+        <div
+          ref={divRef}
+          style={style}
+          onMouseDown={handleMouseDown}
+        >
           <button 
             disabled={isSaved || isAlreadySaved} 
             onClick={handleClick} 
+            style={buttonStyles}
           >
               {isAlreadySaved ? "🎉" : 
               (isSaved ? "🎉" : 
-                (isSaving ? "" : "🐿️"))}
+                (isSaving ? <div><Loader width={"8px"}/></div>  : "🐿️"))}
+                
           </button>
-          <button onClick={openSidepanel}>
+          <button onClick={openSidepanel} style={buttonStyles}>
             <ViewSidebar className='text-light-surface'/>
           </button>
         </div >
-        <SiteSaveIcons/> 
       </>
     : null }
     

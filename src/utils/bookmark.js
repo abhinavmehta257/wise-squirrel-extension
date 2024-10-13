@@ -3,12 +3,15 @@ export async function saveBookmark(saveData,setIsSaving,setIsSaved){
     await chrome.runtime.sendMessage({ action: 'saveUrl', ...saveData }, (response) => {
         if (response && response.success) {
           setIsSaved(true);
+          setIsSaving(false);
+
         } else {
           // Handle error case
           console.error('Failed to save URL');
+          setIsSaving(false);
+
         }
     });
-    setIsSaving(false);
 }
 
 export async function getBookmark(setIsAlreadySaved){

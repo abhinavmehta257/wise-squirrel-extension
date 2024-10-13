@@ -47,7 +47,7 @@ function BookmarkCard({bookmark}) {
         ref={cardRef}
       >
         {/* Thumbnail */}
-        {thumbnail !== 'nsfw' ? (
+        {thumbnail && thumbnail !== 'nsfw' ? (
           <img className="w-[45px] aspect-square rounded-lg" src={thumbnail} alt="thumbnail" />
         ) : (
           <div className="w-[45px] aspect-square rounded-lg text-light-surface dark:bg-dark-surface p-2 flex justify-center items-center">

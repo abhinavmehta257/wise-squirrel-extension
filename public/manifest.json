@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "Wise squirrel Extension",
+    "name": "Wise squirrel - bookmark manager",
     "version": "1.0",
-    "description": "A simple Chrome extension that displays 'Hello, World!'",
+    "description": "Wise Squirrel is a bookmark manager that organizes your saved content, allowing you to access all your bookmarks from any device.",
     "action": {
       "default_icon": {
         "16": "icons/logo16.png",
@@ -17,7 +17,7 @@
     {
       "matches": ["https://*/*"], 
       "js": ["content.js"],
-      "css": ["index.css"]
+      "css":["content.css"]
     }
   ],
   "side_panel": {
@@ -30,8 +30,6 @@
     },
     "permissions": [
       "storage",
-      "activeTab",
-      "tabs",
       "sidePanel"
     ]
   }

@@ -26,6 +26,26 @@ module.exports = {
         '.no-scrollbar::-webkit-scrollbar': {
           'display': 'none',            /* Chrome, Safari, and Opera */
         },
+        '.extention-loader': {
+          padding: '8px',
+          aspectRatio: '1',
+          borderRadius: '50%',
+          background: '#243546',
+          '--_m': `
+            conic-gradient(#0000 10%, #000),
+            linear-gradient(#000 0 0) content-box
+          `,
+          '-webkit-mask': 'var(--_m)',
+          mask: 'var(--_m)',
+          '-webkit-mask-composite': 'source-out',
+          maskComposite: 'subtract',
+          animation: 'l3 1s infinite linear',
+        },
+        '@keyframes l3': {
+          to: {
+            transform: 'rotate(1turn)',
+          },
+        },
       });
     },
   ]

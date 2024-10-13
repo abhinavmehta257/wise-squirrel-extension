@@ -5,6 +5,7 @@ import Cookies from 'js-cookie';
 import Dashboard from './components/Dashboard.jsx';
 import { loginContext, loaderContext, urlContext, routeContext } from './context/context.jsx';
 import SignupForm from './components/SignUp.jsx';
+import Loader from './components/ui/Loader.jsx';
 
 const Popup = () => {
   const [token,setToken] = useState(null);
@@ -15,9 +16,11 @@ const Popup = () => {
     if (token) {
       setToken(token);
       setRoute('dashboard');
+    }else{
+      setRoute('login');
     }
     console.log(token);
-  })
+  },[token])
   const url = 'https://mycache.netlify.app/api'
 
   const renderElement = ()=>{
@@ -30,7 +33,7 @@ const Popup = () => {
  return (
   <routeContext.Provider value={{route, setRoute}}>
     <urlContext.Provider value={{url}}>
-      <loaderContext.Provider value={{setIsLoader}}>
+      <loaderContext.Provider value={{isLoader, setIsLoader}}>
         <loginContext.Provider value={{token, setToken}}>
           <div className='h-[100vh] w-full flex flex-col bg-dark-background p-4'>
             {renderElement()}

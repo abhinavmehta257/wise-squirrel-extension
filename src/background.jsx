@@ -50,6 +50,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			// Return true to indicate that we will send a response asynchronously
 			return true;
 			break;
+		
 		case 'fetchUrl':
 			console.log('Fetching URL:', request.url);
 			chrome.storage.local.get(['authToken'], function(result) {
@@ -81,6 +82,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 			return true;
 			break;
+		
 		case 'openSidePanel':
 			chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
 				if (tabs[0]) {
@@ -150,9 +152,51 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				});
 			});
 			return true;
+	
+		case 'queryServices':
+			chrome.storage.local.get(['authToken'], function(result) {
+				const authToken = result.authToken;
+				console.log('Auth token:', authToken);
+				fetch(`${URL}/bookmarks/query`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${authToken}`
+				},
+				body: JSON.stringify({query:request.query})
+			})
+			.then(response => response.json())
+			.then(data => {
+				if(data.status == false){
+					sendResponse({ success: false, error: data.error });
+
+				}else{
+					sendResponse({ success: true, data: data });
+
+				}
+			})
+			.catch(error => {
+				console.error('Error fetching URL:', error);
+				sendResponse({ success: false, error: error.message });
+				});
+			});
+			return true;
 	}
 });
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+	// Check if the URL has changed
+	if (changeInfo.url) {
+	  console.log('URL changed to: ', changeInfo.url);
+  
+	  // Do something when the URL changes
+	  // Example: alert the user
+	  chrome.tabs.sendMessage(tabId,{action:"urlChanged",url: changeInfo.url});
+	}
+  });
 
 chrome.sidePanel
           .setPanelBehavior({ openPanelOnActionClick: true })
           .catch((error) => console.error(error));
+
+		  

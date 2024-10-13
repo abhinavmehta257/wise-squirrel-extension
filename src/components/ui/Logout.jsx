@@ -29,7 +29,7 @@ export default function Logout() {
 
   return (
     <button 
-      className='' 
+      className='w-full h-full' 
       onClick={handleLogout}
     >
       Logout

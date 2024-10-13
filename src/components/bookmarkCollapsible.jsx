@@ -33,7 +33,7 @@ function BookmarkCollapsible({ bookmarkService, onDelete }) {
       {/* Collapsible Content */}
       {isExpanded && (
         <div className="mt-4 flex flex-col gap-6 w-full">
-          {bookmarks.slice(0, 4).map((bookmark, index) => (
+          {bookmarks.map((bookmark, index) => (
             <BookmarkCard key={index} bookmark={bookmark} onDelete={onDelete} />
           ))}
         </div>

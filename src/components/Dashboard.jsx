@@ -4,18 +4,19 @@ import BookmarkCollapsible from './bookmarkCollapsible.jsx'
 import BookmarkCard from './ui/BookmarkCard.jsx';
 import UserHeaderMenu from './ui/UserHeaderMenu.jsx';
 import { bookmarkContext,loaderContext, urlContext } from '../context/context.jsx';
+import Loader from './ui/Loader.jsx';
 
 function Dashboard() {
   const [bookmarks, setBookmarks] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchesBookmarks, setSearchesBookmarks] = useState([]);
-  const {setIsLoader} = useContext(loaderContext);
-  const {url} = useContext(urlContext);
+  const [isLoader,setIsLoader] = useState(false);
+  // const {url} = useContext(urlContext);
   
-  useEffect(() => {
-    console.log("fetching")
+  async function fetchBookmarks(){
+    console.log("isLoader",isLoader);
     setIsLoader(true);
-    chrome.runtime.sendMessage({ action: 'fetchServices' }, (response) => {
+    await chrome.runtime.sendMessage({ action: 'fetchServices' }, (response) => {
       console.log("fetched")
       if (response.success) {
         setBookmarks(response.data);
@@ -23,9 +24,13 @@ function Dashboard() {
         console.log(response.data)
       } else {
         console.error('Failed to fetch services:', response.error);
+        setIsLoader(false);
       }
     });
+  }
 
+  useEffect(() => {
+    fetchBookmarks();
   }, []);
   
   const handleDeleteBookmark = async (deletedBookmarkId) => {
@@ -73,50 +78,57 @@ function Dashboard() {
   }
 
   // Modified filter function with debounce
-  const filter = debounce((e) => {
+  const filter = debounce(async(e) => {
     const typedSearchTerm = e.target.value.trim();
     setSearchTerm(typedSearchTerm);
-    console.log("test search");
-    let bookmarksFound = [];
-    bookmarks.forEach(services => {
-      services.bookmarks.forEach(bookmark => {
-        const {author, title, body, service_name} = bookmark;
-        if (author.toLowerCase().includes(typedSearchTerm) || 
-            title.toLowerCase().includes(typedSearchTerm) || 
-            body.toLowerCase().includes(typedSearchTerm) || 
-            service_name.toLowerCase().includes(typedSearchTerm)) {
-          bookmarksFound.push(bookmark);
+    if(typedSearchTerm !== ''){ 
+      setIsLoader(true);
+      setSearchTerm(typedSearchTerm);
+      console.log("query db")
+      await chrome.runtime.sendMessage({ action: 'queryServices',query: typedSearchTerm }, (response) => {
+        console.log("fetched")
+        if (response.success) {
+          setSearchesBookmarks(response.data);
+          setIsLoader(false);
+          console.log(response.data)
+        } else {
+          console.error('Failed to fetch services:', response.error);
+          setIsLoader(false);
         }
       });
-    });
-    
-    setSearchesBookmarks(bookmarksFound);
-  }, 500);
+    }
+  }, 1000);
 
   return (
     <div className='h-full w-full flex flex-col items-center bg-dark-background'>
+      <bookmarkContext.Provider value={{handleDeleteBookmark, fetchBookmarks}}>
       <div className='flex flex-row justify-between items-center w-full'>
         <h1 className="text-light-text text-[28px] font-bold font-['Inter'] leading-[35px]">Bookmarks</h1>
         <UserHeaderMenu />
       </div>
-      <bookmarkContext.Provider value={{handleDeleteBookmark}}>
         <div className='flex flex-col gap-[16px] w-full  overflow-y-auto no-scrollbar h-[85vh]'>
         {
-          bookmarks && searchTerm.trim() === '' ? (
+          isLoader ? (
+            <div className='w-full h-full flex justify-center items-center'>
+              <Loader width={"50px"} />
+            </div>
+          ) : (bookmarks && searchTerm.trim() === '' ? (
             bookmarks.map((bookmark, index) => (
               <BookmarkCollapsible key={index} bookmarkService={bookmark} />
             ))
-          ) : searchTerm.trim() !== '' ? (
+          ) : (searchTerm.trim() !== '' ? (
             searchesBookmarks.map((bookmark, index) => (
-              <div className='mt-4' key={index}><BookmarkCard bookmark={bookmark} /></div>
+              <div className='mt-4' key={index}>
+                <BookmarkCard bookmark={bookmark} />
+              </div>
             ))
-          ) : (
-            <Card />
-          )
+          ) : null)) // Return null if no conditions match
         }
+
+        
         </div>
       </bookmarkContext.Provider>
-        <div className='mt-[auto] flex justify-center items-end w-full '>
+        <div className='mt-[auto] pt-[16px] flex justify-center items-end w-full '>
           <input
           type="text"
           placeholder="Search bookmarks..."
